@@ -42,7 +42,7 @@ In our paper, Section III. B. Scenarios mentioned:
 
 > we take the first 2 session data from one subject as the source domains for cross-session transfer, and take the first 14 subjects data from one session as the source domains for cross-subject transfer. The results of cross-session scenarios are averaged over 15 subjects, and the results of cross-subject are averaged over 3 sessions. Standard deviations are also calculated.
 
-However, as descriped in ISSUE #3, LOSO (Leave-one-subject-out) is also required, we therefore additionally evaluated our method in the LOSO paradigm with compared works (In batch size of {16, 32, 64, 128, 256, 512}). Note that this LOSO experiments are not included in the original paper, and since other works have not yet made their code open source, thus we reproduced some of them. The results are shown below (csesn stands for cross-session, csub stands for cross-subject, the number next to it represents to batch size):
+However, as descriped in ISSUE VoiceBeer/MS-MDA#3, LOSO (Leave-one-subject-out) is also required, we therefore additionally evaluated our method in the LOSO paradigm with compared works (In batch size of {16, 32, 64, 128, 256, 512}). Note that this LOSO experiments are not included in the original paper, and since other works have not yet made their code open source, thus we reproduced some of them. The results are shown below (csesn stands for cross-session, csub stands for cross-subject, the number next to it represents to batch size):
 
 | Dataset | Method | csesn_16 | csub_16 | csesn_32 | csub_32 | csesn_64 | csub_64 | csesn_128 | csub_128 | csesn_256 | csub_256 | csesn_512 | csub_512 | 
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | 
