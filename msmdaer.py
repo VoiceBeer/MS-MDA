@@ -284,8 +284,8 @@ if __name__ == '__main__':
     csesn = []
 
     # cross-subject, for 3 sessions, 1-14 as sources, 15 as target
-    for subject_id in range(15):
-        for i in range(3):
+    for i in range(3):
+        for subject_id in range(15):
             csub.append(cross_subject(data_tmp, label_tmp, i, subject_id, category_number,
                                       batch_size, iteration, lr, momentum, log_interval))
 
