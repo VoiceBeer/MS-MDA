@@ -49,7 +49,7 @@ However, as descriped in ISSUE [3](https://github.com/VoiceBeer/MS-MDA/issues/3)
 | **SEED** | DDC | | | | | | | | | | 68.22±6.20 | | |
 | | DAN | | | | | | | | | | 68.44±8.66 | | |
 | | DCORAL | | | | | | | | | | | | |
-| | MS-MDA | | | | | | | | | | 78.91±9.54 | | | 
+| | MS-MDA | | | | | | | | | 87.68±9.22 | 78.78±10.70 | | | 
 | **SEED-IV** | DDC | | | | | | | | | | | | |
 | | DAN | | | | | | | | | | | | |
 | | DCORAL | | | | | | | | | | | | |
