@@ -33,6 +33,15 @@ If you find our work useful for your research, please consider citing our paper 
   journal={arXiv preprint arXiv:2107.07740},
   year={2021}
 }
+
+@inproceedings{chen2021meernet,
+  title={MEERNet: Multi-source EEG-based Emotion Recognition Network for Generalization Across Subjects and Sessions},
+  author={Chen, Hao and Li, Zhunan and Jin, Ming and Li, Jinpeng},
+  booktitle={2021 43rd Annual International Conference of the IEEE Engineering in Medicine \& Biology Society (EMBC)},
+  pages={6094--6097},
+  year={2021},
+  organization={IEEE}
+}
 ```
 ## TODO
 - [ ] LOSO experiments on SEED and SEED-IV, methods including DDC, DAN, DCORAL, MS-MDA, on two transfer scenarios (cross-subject, cross-session)
