@@ -53,12 +53,6 @@ In our paper, Section III. B. Scenarios mentioned:
 
 However, as described in ISSUE [3](https://github.com/VoiceBeer/MS-MDA/issues/3), LOSO (Leave-one-subject-out) is also required, we therefore additionally evaluated our method in the LOSO paradigm with compared works (In the batch size of {16, 32, 64, 128, 256, 512}). Note that these LOSO experiments are not included in the original paper, and since other works have not yet made their code open-source, we reproduced some of them. The results are shown below (csesn stands for cross-session, csub stands for cross-subject, the number next to it represents batch size):
 
-
-| **SEED-IV** | DDC |  |  |  | 5 |  | |
-| | DAN |  |  |  |  |  |  |
-| | DCORAL |  |  |  |  |  |  |
-| | MS-MDA | | | | | | | | | | | | |
-
 | Dataset | Method | csesn_512 | csub_512 | csesn_256 | csub_256 | csesn_128 | csub_128 | csesn_64 | csub_64 | csesn_32 | csub_32 | csesn_16 | csub_16 |
 |   :---  |  :---  |   :---:   |   :---:  |   :---:   |   :---:  |   :---:   |   :---:  |    :---: |   :---: |   :---:  |  :---:  |   :---:  |  :---:  | 
 |**SEED** | DCORAL |65.49±9.95 |57.43±8.49|77.33±11.10|62.50±6.77|73.74±9.09 |64.05±8.38|74.65±10.46|65.40±9.27|76.24±8.51|64.98±8.42|76.40±10.49|66.39±7.55|
