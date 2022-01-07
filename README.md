@@ -44,7 +44,7 @@ If you find our work useful for your research, please consider citing our paper 
 }
 ```
 ## TODO
-- [ ] LOSO experiments on SEED and SEED-IV, methods including DDC, DAN, DCORAL, MS-MDA, on two transfer scenarios (cross-subject, cross-session)
+- [x] LOSO experiments on SEED and SEED-IV, methods including DDC, DAN, DCORAL, MS-MDA, on two transfer scenarios (cross-subject, cross-session)
 
 ## LOSO Experiments
 In our paper, Section III. B. Scenarios mentioned:
