@@ -2,7 +2,7 @@
 Description: 
 Author: voicebeer
 Date: 2020-09-08 07:00:34
-LastEditTime: 2020-10-30 06:02:18
+LastEditTime: 2021-12-22 01:53:49
 '''
 
 # For SEED data loading
@@ -261,7 +261,7 @@ def load_data(dataset_name):
             one_data, one_label = get_data_label_frommat(mat_path, dataset_name, i)
             data[i][j] = one_data.copy()
             label[i][j] = one_label.copy()
-    return data, label
+    return np.array(data), np.array(label)
 
 # def load_deap():
 #     '''

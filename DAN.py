@@ -2,7 +2,7 @@
 Description: 
 Author: voicebeer
 Date: 2020-09-14 01:01:51
-LastEditTime: 2021-02-22 08:46:32
+LastEditTime: 2021-12-28 01:55:41
 '''
 # standard
 import argparse
@@ -29,7 +29,7 @@ def setup_seed(seed):
 setup_seed(20)
 
 # writer = SummaryWriter()
-device = torch.device("cuda:2" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 
 class DANNet():
     def __init__(self, model=models.DAN(), source_loader=0, target_loader=0, batch_size=64, iteration=10000, lr=0.001, momentum=0.9, log_interval=10):
@@ -56,8 +56,8 @@ class DANNet():
             self.model.train()
             # LEARNING_RATE = self.lr / math.pow((1 + 10 * (i - 1) / (self.iteration)), 0.75)
             LEARNING_RATE = self.lr
-            if (i - 1) % 100 == 0:
-                print("Learning rate: ", LEARNING_RATE)
+            # if (i - 1) % 100 == 0:
+            #     print("Learning rate: ", LEARNING_RATE)
             # optimizer = torch.optim.SGD(self.model.parameters(), lr=LEARNING_RATE, momentum=self.momentum)
             optimizer = torch.optim.Adam(self.model.parameters(), lr=LEARNING_RATE)
             
@@ -81,16 +81,16 @@ class DANNet():
             loss = cls_loss + gamma * mmd_loss
             loss.backward()
             optimizer.step()
-            if i % log_interval == 0:
-                print('Iter: {} [({:.0f}%)]\tLoss: {:.6f}\tsoft_loss: {:.6f}\tmmd_loss {:.6f}'.format(
-                    i, 100.*i/self.iteration, loss.item(), cls_loss.item(), mmd_loss.item()
-                    )
-                )
+            # if i % log_interval == 0:
+            #     print('Iter: {} [({:.0f}%)]\tLoss: {:.6f}\tsoft_loss: {:.6f}\tmmd_loss {:.6f}'.format(
+            #         i, 100.*i/self.iteration, loss.item(), cls_loss.item(), mmd_loss.item()
+            #         )
+            #     )
             if i % (log_interval * 20) == 0:
                 t_correct = self.test(i)
                 if t_correct > correct:
                     correct = t_correct
-                print('to target max correct: ', correct.item(), "\n")
+                # print('to target max correct: ', correct.item(), "\n")
         return 100. * correct / len(self.target_loader.dataset)
 
     def test(self, iteration):
@@ -108,17 +108,24 @@ class DANNet():
             test_loss /= len(self.target_loader.dataset)
             # writer.add_scalar("Test/Test loss", test_loss, iteration)
 
-            print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
-                test_loss, correct, len(self.target_loader.dataset),
-                100. * correct / len(self.target_loader.dataset)
-            )) 
+            # print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+            #     test_loss, correct, len(self.target_loader.dataset),
+            #     100. * correct / len(self.target_loader.dataset)
+            # )) 
         return correct
 
-def cross_subject(data, label, session_id, category_number, batch_size, iteration, lr, momentum, log_interval):
-    # cross-subject, for 3 sessions, 1-14 as sources, 15 as target
+def cross_subject(data, label, session_id, subject_id, category_number, batch_size, iteration, lr, momentum, log_interval):
+    ## LOSO
     one_session_data, one_session_label = copy.deepcopy(data[session_id]), copy.deepcopy(label[session_id])
-    target_data, target_label = one_session_data.pop(), one_session_label.pop()
-    source_data, source_label = copy.deepcopy(one_session_data), copy.deepcopy(one_session_label.copy())
+    train_idxs = list(range(15))
+    del train_idxs[subject_id]
+    test_idx = subject_id
+    target_data, target_label = one_session_data[test_idx], one_session_label[test_idx]
+    source_data, source_label = copy.deepcopy(one_session_data[train_idxs]), copy.deepcopy(one_session_label[train_idxs])
+
+    del one_session_label
+    del one_session_data
+
     # print(len(source_data))
     source_data_comb = source_data[0]
     source_label_comb = source_label[0]
@@ -143,15 +150,18 @@ def cross_subject(data, label, session_id, category_number, batch_size, iteratio
                 log_interval=log_interval)
     # print(model.__getModel__())
     acc = model.train()
+    print('Target_subject_id: {}, current_session_id: {}, acc: {}'.format(test_idx, session_id, acc))
     return acc
 
-def cross_session(data, label, subject_id, category_number, batch_size, iteration, lr, momentum, log_interval):
-    target_data, target_label = copy.deepcopy(data[2][subject_id]), copy.deepcopy(label[2][subject_id])
-    source_data, source_label = [copy.deepcopy(data[0][subject_id]), copy.deepcopy(data[1][subject_id])], [copy.deepcopy(label[0][subject_id]), copy.deepcopy(label[1][subject_id])]
-    # one_sub_data, one_sub_label = data[i], label[i]
-    # target_data, target_label = one_session_data.pop(), one_session_label.pop()
-    # source_data, source_label = one_session_data.copy(), one_session_label.copy()
-    # print(len(source_data))
+def cross_session(data, label, session_id, subject_id, category_number, batch_size, iteration, lr, momentum, log_interval):
+    ## LOSO
+    train_idxs = list(range(3))
+    del train_idxs[session_id]
+    test_idx = session_id
+
+    target_data, target_label = copy.deepcopy(data[test_idx][subject_id]), copy.deepcopy(label[test_idx][subject_id])
+    source_data, source_label = copy.deepcopy(data[train_idxs][:, subject_id]), copy.deepcopy(label[train_idxs][:, subject_id])
+
     source_data_comb = np.vstack((source_data[0], source_data[1]))
     source_label_comb = np.vstack((source_label[0], source_label[1]))
     for j in range(1, len(source_data)):
@@ -175,6 +185,7 @@ def cross_session(data, label, subject_id, category_number, batch_size, iteratio
                 log_interval=log_interval)
     # print(model.__getModel__())
     acc = model.train()
+    print('Target_session_id: {}, current_subject_id: {}, acc: {}'.format(test_idx, subject_id, acc))
     return acc
 
 if __name__ == '__main__':
@@ -237,14 +248,17 @@ if __name__ == '__main__':
     csub = []
     csesn = []
 
-    # cross-subject, for 3 sessions, 1-14 as sources, 15 as target
-    for i in range(3):
-        csub.append(cross_subject(data_tmp, label_tmp, i, category_number, batch_size, iteration, lr, momentum, log_interval))
-            
-    # cross-session, for 15 subjects, 1-2 as sources, 3 as target
-    for i in range(15):
-        csesn.append(cross_session(data_tmp, label_tmp, i, category_number, batch_size, iteration, lr, momentum, log_interval))
-    
+    ## LOSO
+    for session_id_main in range(3):
+        for subject_id_main in range(15):
+            csub.append(cross_subject(data_tmp, label_tmp, session_id_main, subject_id_main, category_number,
+                                      batch_size, iteration, lr, momentum, log_interval))
+
+    for subject_id_main in range(15):
+        for session_id_main in range(3):
+            csesn.append(cross_session(data_tmp, label_tmp, session_id_main, subject_id_main, category_number,
+                                    batch_size, iteration, lr, momentum, log_interval))
+
     print("Cross-session: ", csesn)
     print("Cross-subject: ", csub)
     print("Cross-session mean: ", np.mean(csesn), "std: ", np.std(csesn))
