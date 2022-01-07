@@ -43,8 +43,6 @@ If you find our work useful for your research, please consider citing our paper 
   organization={IEEE}
 }
 ```
-## TODO
-- [x] LOSO experiments on SEED and SEED-IV, methods including DDC, DAN, DCORAL, MS-MDA, on two transfer scenarios (cross-subject, cross-session)
 
 ## LOSO Experiments
 In our paper, Section III. B. Scenarios mentioned:
@@ -63,6 +61,9 @@ However, as described in ISSUE [3](https://github.com/VoiceBeer/MS-MDA/issues/3)
 |           |   DAN  |27.79±8.43|21.30±4.98|52.62±11.91|41.47±8.02|58.63±11.77|47.50±8.80|67.12±13.47|59.11±7.99|**71.51±11.98**|63.57±9.07|74.40±12.67|69.68±9.24|
 |           |   DDC  |27.18±6.83|21.94±5.89|53.30±11.42|42.67±9.81|59.00±11.48|48.50±8.44|**67.94±12.20**|58.18±8.20|71.00±13.25|64.00±8.52|**74.81±12.65**|**69.90±9.95**|
 |           | MS-MDA |**37.75±10.26**|**36.03±8.99**|**62.01±13.43**|**56.20±12.85**|**64.04±15.27**|**61.06±12.69**|66.87±15.69|**62.77±11.23**|70.31±15.35|**65.12±13.85**|72.77±14.71|67.96±11.94|
+
+## TODO
+- [x] LOSO experiments on SEED and SEED-IV, methods including DDC, DAN, DCORAL, MS-MDA, on two transfer scenarios (cross-subject, cross-session)
 
 ## License
 This source code is licensed under the MIT license
