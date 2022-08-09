@@ -1,6 +1,4 @@
 # MS-MDA
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/ms-mda-multisource-marginal-distribution/eeg-on-seed-1)](https://paperswithcode.com/sota/eeg-on-seed-1?p=ms-mda-multisource-marginal-distribution)
-
 Code of paper MS-MDA: Multisource Marginal Distribution Adaptation for Cross-subject and Cross-session EEG Emotion Recognition
 
 ## Datasets
