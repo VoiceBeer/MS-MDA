@@ -5,6 +5,8 @@ Date: 2020-09-14 01:01:51
 LastEditTime: 2021-03-16 06:00:49
 '''
 # standard
+import models
+import utils
 import argparse
 import torch
 import torch.nn.functional as F
@@ -16,22 +18,25 @@ import time
 import math
 from torch.utils.tensorboard import SummaryWriter
 
-# 
+#
 import sys
 sys.path.append(".")
-import utils
-import models
 
 # random seed
+
+
 def setup_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
     np.random.seed(seed)
     torch.backends.cudnn.deterministic = True
+
+
 setup_seed(20)
 
 # writer = SummaryWriter()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 
 class MSMDAER():
     def __init__(self, model=models.MSMDAERNet(), source_loaders=0, target_loader=0, batch_size=64, iteration=10000, lr=0.001, momentum=0.9, log_interval=10):
@@ -63,8 +68,9 @@ class MSMDAER():
             # if (i - 1) % 100 == 0:
             #     print("Learning rate: ", LEARNING_RATE)
             # optimizer = torch.optim.SGD(self.model.parameters(), lr=LEARNING_RATE, momentum=self.momentum)
-            optimizer = torch.optim.Adam(self.model.parameters(), lr=LEARNING_RATE)
-            
+            optimizer = torch.optim.Adam(
+                self.model.parameters(), lr=LEARNING_RATE)
+
             for j in range(len(source_iters)):
                 try:
                     source_data, source_label = next(source_iters[j])
@@ -76,11 +82,13 @@ class MSMDAER():
                 except Exception as err:
                     target_iter = iter(self.target_loader)
                     target_data, _ = next(target_iter)
-                source_data, source_label = source_data.to(device), source_label.to(device)
+                source_data, source_label = source_data.to(
+                    device), source_label.to(device)
                 target_data = target_data.to(device)
 
                 optimizer.zero_grad()
-                cls_loss, mmd_loss, l1_loss = self.model(source_data, number_of_source=len(source_iters), data_tgt=target_data, label_src=source_label, mark=j)
+                cls_loss, mmd_loss, l1_loss = self.model(source_data, number_of_source=len(
+                    source_iters), data_tgt=target_data, label_src=source_label, mark=j)
                 gamma = 2 / (1 + math.exp(-10 * (i) / (self.iteration))) - 1
                 beta = gamma/100
                 # beta = 0
@@ -89,7 +97,7 @@ class MSMDAER():
                 #     beta = 2/ (1 + math.exp(-10 * (i-tmp+2) / (self.iteration-tmp))) - 1
                 # # gamma   = 1
                 loss = cls_loss + gamma * mmd_loss + beta * l1_loss
-                
+
                 # loss = cls_loss + gamma * (mmd_loss)
                 # writer.add_scalar('Loss/training cls loss', cls_loss, i)
                 # writer.add_scalar('Loss/training mmd loss', mmd_loss, i)
@@ -99,7 +107,7 @@ class MSMDAER():
                 loss.backward()
                 optimizer.step()
 
-                # if i % log_interval == 0: 
+                # if i % log_interval == 0:
                 #     print('Train source' + str(j) + ', iter: {} [({:.0f}%)]\tLoss: {:.6f}\tsoft_loss: {:.6f}\tmmd_loss {:.6f}\tl1_loss: {:.6f}'.format(
                 #         i, 100.*i/self.iteration, loss.item(), cls_loss.item(), mmd_loss.item(), l1_loss.item()
                 #         )
@@ -126,13 +134,14 @@ class MSMDAER():
                 for i in range(len(preds)):
                     preds[i] = F.softmax(preds[i], dim=1)
                 pred = sum(preds)/len(preds)
-                test_loss += F.nll_loss(F.log_softmax(pred, dim=1), target.squeeze()).item()
+                test_loss += F.nll_loss(F.log_softmax(pred,
+                                        dim=1), target.squeeze()).item()
                 pred = pred.data.max(1)[1]
                 correct += pred.eq(target.data.squeeze()).cpu().sum()
                 for j in range(len(self.source_loaders)):
                     pred = preds[j].data.max(1)[1]
                     corrects[j] += pred.eq(target.data.squeeze()).cpu().sum()
-            
+
             test_loss /= len(self.target_loader.dataset)
             # writer.add_scalar("Test/Test loss", test_loss, iteration)
 
@@ -144,36 +153,42 @@ class MSMDAER():
             #     print('Source' + str(n) + 'accnum {}'.format(corrects[n]))
         return correct
 
+
 def cross_subject(data, label, session_id, category_number, batch_size, iteration, lr, momentum, log_interval):
-    one_session_data, one_session_label = copy.deepcopy(data_tmp[session_id]), copy.deepcopy(label[session_id])
+    one_session_data, one_session_label = copy.deepcopy(
+        data_tmp[session_id]), copy.deepcopy(label[session_id])
     target_data, target_label = one_session_data.pop(), one_session_label.pop()
-    source_data, source_label = copy.deepcopy(one_session_data), copy.deepcopy(one_session_label)
+    source_data, source_label = copy.deepcopy(
+        one_session_data), copy.deepcopy(one_session_label)
     # print(len(source_data))
     source_loaders = []
     for j in range(len(source_data)):
         source_loaders.append(torch.utils.data.DataLoader(dataset=utils.CustomDataset(source_data[j], source_label[j]),
-                                                            batch_size=batch_size,
-                                                            shuffle=True,
-                                                            drop_last=True))
+                                                          batch_size=batch_size,
+                                                          shuffle=True,
+                                                          drop_last=True))
     target_loader = torch.utils.data.DataLoader(dataset=utils.CustomDataset(target_data, target_label),
-                                                            batch_size=batch_size, 
-                                                            shuffle=True, 
-                                                            drop_last=True)
+                                                batch_size=batch_size,
+                                                shuffle=True,
+                                                drop_last=True)
     model = MSMDAER(model=models.MSMDAERNet(pretrained=False, number_of_source=len(source_loaders), number_of_category=category_number),
-                    source_loaders=source_loaders, 
-                    target_loader=target_loader, 
-                    batch_size=batch_size, 
-                    iteration=iteration, 
+                    source_loaders=source_loaders,
+                    target_loader=target_loader,
+                    batch_size=batch_size,
+                    iteration=iteration,
                     lr=lr,
-                    momentum=momentum, 
+                    momentum=momentum,
                     log_interval=log_interval)
     # print(model.__getModel__())
     acc = model.train()
     return acc
 
+
 def cross_session(data, label, subject_id, category_number, batch_size, iteration, lr, momentum, log_interval):
-    target_data, target_label = copy.deepcopy(data_tmp[2][subject_id]), copy.deepcopy(label[2][subject_id])
-    source_data, source_label = [copy.deepcopy(data_tmp[0][subject_id]), copy.deepcopy(data_tmp[1][subject_id])], [copy.deepcopy(label[0][subject_id]), copy.deepcopy(label[1][subject_id])]
+    target_data, target_label = copy.deepcopy(
+        data_tmp[2][subject_id]), copy.deepcopy(label[2][subject_id])
+    source_data, source_label = [copy.deepcopy(data_tmp[0][subject_id]), copy.deepcopy(
+        data_tmp[1][subject_id])], [copy.deepcopy(label[0][subject_id]), copy.deepcopy(label[1][subject_id])]
     # one_sub_data, one_sub_label = data[i], label[i]
     # target_data, target_label = one_session_data.pop(), one_session_label.pop()
     # source_data, source_label = one_session_data.copy(), one_session_label.copy()
@@ -181,35 +196,41 @@ def cross_session(data, label, subject_id, category_number, batch_size, iteratio
     source_loaders = []
     for j in range(len(source_data)):
         source_loaders.append(torch.utils.data.DataLoader(dataset=utils.CustomDataset(source_data[j], source_label[j]),
-                                                            batch_size=batch_size,
-                                                            shuffle=True,
-                                                            drop_last=True))
+                                                          batch_size=batch_size,
+                                                          shuffle=True,
+                                                          drop_last=True))
     target_loader = torch.utils.data.DataLoader(dataset=utils.CustomDataset(target_data, target_label),
-                                                            batch_size=batch_size, 
-                                                            shuffle=True, 
-                                                            drop_last=True)
+                                                batch_size=batch_size,
+                                                shuffle=True,
+                                                drop_last=True)
     model = MSMDAER(model=models.MSMDAERNet(pretrained=False, number_of_source=len(source_loaders), number_of_category=category_number),
-                    source_loaders=source_loaders, 
-                    target_loader=target_loader, 
-                    batch_size=batch_size, 
-                    iteration=iteration, 
+                    source_loaders=source_loaders,
+                    target_loader=target_loader,
+                    batch_size=batch_size,
+                    iteration=iteration,
                     lr=lr,
-                    momentum=momentum, 
+                    momentum=momentum,
                     log_interval=log_interval)
     # print(model.__getModel__())
     acc = model.train()
     return acc
 
+
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='MS-MDAER normalization parameters')
-    parser.add_argument('--dataset', type=str, default='seed3', help='the dataset used for MS-MDAER')
-    parser.add_argument('--norm_type', type=str, default='ele', help='the normalization type used for data')
-    parser.add_argument('--batch_size', type=int, default=256, help='size for one batch')
-    parser.add_argument('--epoch', type=int, default=200, help='training epoch')
+    parser = argparse.ArgumentParser(
+        description='MS-MDAER normalization parameters')
+    parser.add_argument('--dataset', type=str, default='seed3',
+                        help='the dataset used for MS-MDAER')
+    parser.add_argument('--norm_type', type=str, default='ele',
+                        help='the normalization type used for data')
+    parser.add_argument('--batch_size', type=int,
+                        default=256, help='size for one batch')
+    parser.add_argument('--epoch', type=int, default=200,
+                        help='training epoch')
     parser.add_argument('--lr', type=float, default=0.01, help='learning rate')
     args = parser.parse_args()
     dataset_name = args.dataset
-    bn = args.norm_type 
+    bn = args.norm_type
 
     print('Model name: MS-MDAER. Dataset name: ', dataset_name)
     data, label = utils.load_data(dataset_name)
@@ -237,7 +258,8 @@ if __name__ == '__main__':
         label_tmp = copy.deepcopy(label)
     else:
         pass
-    trial_total, category_number, _ = utils.get_number_of_label_n_trial(dataset_name)
+    trial_total, category_number, _ = utils.get_number_of_label_n_trial(
+        dataset_name)
 
     # training settings
     batch_size = args.batch_size
@@ -254,19 +276,21 @@ if __name__ == '__main__':
     else:
         iteration = 5000
     print('Iteration: {}'.format(iteration))
-    
+
     # store the results
     csub = []
     csesn = []
 
     # cross-subject, for 3 sessions, 1-14 as sources, 15 as target
     for i in range(3):
-        csub.append(cross_subject(data_tmp, label_tmp, i, category_number, batch_size, iteration, lr, momentum, log_interval))
-            
+        csub.append(cross_subject(data_tmp, label_tmp, i, category_number,
+                    batch_size, iteration, lr, momentum, log_interval))
+
     # cross-session, for 15 subjects, 1-2 as sources, 3 as target
     for i in range(15):
-        csesn.append(cross_session(data_tmp, label_tmp, i, category_number, batch_size, iteration, lr, momentum, log_interval))
-    
+        csesn.append(cross_session(data_tmp, label_tmp, i, category_number,
+                     batch_size, iteration, lr, momentum, log_interval))
+
     print("Cross-session: ", csesn)
     print("Cross-subject: ", csub)
     print("Cross-session mean: ", np.mean(csesn), "std: ", np.std(csesn))

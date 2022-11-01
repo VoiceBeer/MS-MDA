@@ -16,20 +16,25 @@ import time
 import math
 from torch.utils.tensorboard import SummaryWriter
 
-# 
+#
 import utils
 import models
 
 # random seed
+
+
 def setup_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
     np.random.seed(seed)
     torch.backends.cudnn.deterministic = True
+
+
 setup_seed(20)
 
 # writer = SummaryWriter()
 device = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
+
 
 class DCORAL():
     def __init__(self, model=models.DeepCoral(), source_loader=0, target_loader=0, batch_size=64, iteration=10000, lr=0.001, momentum=0.9, log_interval=10):
@@ -59,8 +64,9 @@ class DCORAL():
             # if (i - 1) % 100 == 0:
             #     print("Learning rate: ", LEARNING_RATE)
             # optimizer = torch.optim.SGD(self.model.parameters(), lr=LEARNING_RATE, momentum=self.momentum)
-            optimizer = torch.optim.Adam(self.model.parameters(), lr=LEARNING_RATE)
-            
+            optimizer = torch.optim.Adam(
+                self.model.parameters(), lr=LEARNING_RATE)
+
             try:
                 source_data, source_label = next(source_iter)
             except Exception as err:
@@ -71,12 +77,15 @@ class DCORAL():
             except Exception as err:
                 target_iter = iter(self.target_loader)
                 target_data, _ = next(target_iter)
-            source_data, source_label = source_data.to(device), source_label.to(device)
+            source_data, source_label = source_data.to(
+                device), source_label.to(device)
             target_data = target_data.to(device)
-            
+
             optimizer.zero_grad()
-            source_prediction, mmd_loss = self.model(source_data, data_tgt=target_data)
-            cls_loss = F.nll_loss(F.log_softmax(source_prediction, dim=1), source_label.squeeze())
+            source_prediction, mmd_loss = self.model(
+                source_data, data_tgt=target_data)
+            cls_loss = F.nll_loss(F.log_softmax(
+                source_prediction, dim=1), source_label.squeeze())
             gamma = 2 / (1 + math.exp(-10 * (i) / (iteration))) - 1
             loss = cls_loss + gamma * mmd_loss
             loss.backward()
@@ -102,7 +111,8 @@ class DCORAL():
                 data = data.to(device)
                 target = target.to(device)
                 preds, mmd_loss = self.model(data, data)
-                test_loss += F.nll_loss(F.log_softmax(preds, dim=1), target.squeeze(), reduction='sum').item()
+                test_loss += F.nll_loss(F.log_softmax(preds, dim=1),
+                                        target.squeeze(), reduction='sum').item()
                 pred = preds.data.max(1)[1]
                 correct += pred.eq(target.data.squeeze()).cpu().sum()
             test_loss /= len(self.target_loader.dataset)
@@ -111,17 +121,20 @@ class DCORAL():
             # print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
             #     test_loss, correct, len(self.target_loader.dataset),
             #     100. * correct / len(self.target_loader.dataset)
-            # )) 
+            # ))
         return correct
 
+
 def cross_subject(data, label, session_id, subject_id, category_number, batch_size, iteration, lr, momentum, log_interval):
-    ## LOSO
-    one_session_data, one_session_label = copy.deepcopy(data[session_id]), copy.deepcopy(label[session_id])
+    # LOSO
+    one_session_data, one_session_label = copy.deepcopy(
+        data[session_id]), copy.deepcopy(label[session_id])
     train_idxs = list(range(15))
     del train_idxs[subject_id]
     test_idx = subject_id
     target_data, target_label = one_session_data[test_idx], one_session_label[test_idx]
-    source_data, source_label = copy.deepcopy(one_session_data[train_idxs]), copy.deepcopy(one_session_label[train_idxs])
+    source_data, source_label = copy.deepcopy(
+        one_session_data[train_idxs]), copy.deepcopy(one_session_label[train_idxs])
 
     del one_session_label
     del one_session_data
@@ -132,34 +145,38 @@ def cross_subject(data, label, session_id, subject_id, category_number, batch_si
         source_data_comb = np.vstack((source_data_comb, source_data[j]))
         source_label_comb = np.vstack((source_label_comb, source_label[j]))
     source_loader = torch.utils.data.DataLoader(dataset=utils.CustomDataset(source_data_comb, source_label_comb),
-                                                            batch_size=batch_size,
-                                                            shuffle=True,
-                                                            drop_last=True)
+                                                batch_size=batch_size,
+                                                shuffle=True,
+                                                drop_last=True)
     target_loader = torch.utils.data.DataLoader(dataset=utils.CustomDataset(target_data, target_label),
-                                                            batch_size=batch_size, 
-                                                            shuffle=True, 
-                                                            drop_last=True)
+                                                batch_size=batch_size,
+                                                shuffle=True,
+                                                drop_last=True)
     model = DCORAL(model=models.DeepCoral(pretrained=False, number_of_category=category_number),
-                source_loader=source_loader,
-                target_loader=target_loader,
-                batch_size=batch_size,
-                iteration=iteration,
-                lr=lr,
-                momentum=momentum,
-                log_interval=log_interval)
+                   source_loader=source_loader,
+                   target_loader=target_loader,
+                   batch_size=batch_size,
+                   iteration=iteration,
+                   lr=lr,
+                   momentum=momentum,
+                   log_interval=log_interval)
     # print(model.__getModel__())
     acc = model.train()
-    print('Target_subject_id: {}, current_session_id: {}, acc: {}'.format(test_idx, session_id, acc))
+    print('Target_subject_id: {}, current_session_id: {}, acc: {}'.format(
+        test_idx, session_id, acc))
     return acc
 
+
 def cross_session(data, label, session_id, subject_id, category_number, batch_size, iteration, lr, momentum, log_interval):
-    ## LOSO
+    # LOSO
     train_idxs = list(range(3))
     del train_idxs[session_id]
     test_idx = session_id
 
-    target_data, target_label = copy.deepcopy(data[test_idx][subject_id]), copy.deepcopy(label[test_idx][subject_id])
-    source_data, source_label = copy.deepcopy(data[train_idxs][:, subject_id]), copy.deepcopy(label[train_idxs][:, subject_id])
+    target_data, target_label = copy.deepcopy(
+        data[test_idx][subject_id]), copy.deepcopy(label[test_idx][subject_id])
+    source_data, source_label = copy.deepcopy(
+        data[train_idxs][:, subject_id]), copy.deepcopy(label[train_idxs][:, subject_id])
 
     source_data_comb = np.vstack((source_data[0], source_data[1]))
     source_label_comb = np.vstack((source_label[0], source_label[1]))
@@ -167,37 +184,43 @@ def cross_session(data, label, session_id, subject_id, category_number, batch_si
         source_data_comb = np.vstack((source_data_comb, source_data[j]))
         source_label_comb = np.vstack((source_label_comb, source_label[j]))
     source_loader = torch.utils.data.DataLoader(dataset=utils.CustomDataset(source_data_comb, source_label_comb),
-                                                            batch_size=batch_size,
-                                                            shuffle=True,
-                                                            drop_last=True)
+                                                batch_size=batch_size,
+                                                shuffle=True,
+                                                drop_last=True)
     target_loader = torch.utils.data.DataLoader(dataset=utils.CustomDataset(target_data, target_label),
-                                                            batch_size=batch_size, 
-                                                            shuffle=True, 
-                                                            drop_last=True)
+                                                batch_size=batch_size,
+                                                shuffle=True,
+                                                drop_last=True)
     model = DCORAL(model=models.DeepCoral(pretrained=False, number_of_category=category_number),
-                source_loader=source_loader,
-                target_loader=target_loader,
-                batch_size=batch_size,
-                iteration=iteration,
-                lr=lr,
-                momentum=momentum,
-                log_interval=log_interval)
+                   source_loader=source_loader,
+                   target_loader=target_loader,
+                   batch_size=batch_size,
+                   iteration=iteration,
+                   lr=lr,
+                   momentum=momentum,
+                   log_interval=log_interval)
     # print(model.__getModel__())
     acc = model.train()
-    print('Target_session_id: {}, current_subject_id: {}, acc: {}'.format(test_idx, subject_id, acc))
+    print('Target_session_id: {}, current_subject_id: {}, acc: {}'.format(
+        test_idx, subject_id, acc))
     return acc
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='DCORAL parameters')
-    parser.add_argument('--dataset', type=str, default='seed3', help='the dataset used for DCORAL, "seed3" or "seed4"')
-    parser.add_argument('--norm_type', type=str, default='ele', help='the normalization type used for data, "ele", "sample", "global" or "none"')
-    parser.add_argument('--batch_size', type=int, default=256, help='size for one batch, integer')
-    parser.add_argument('--epoch', type=int, default=200, help='training epoch, integer')
+    parser.add_argument('--dataset', type=str, default='seed3',
+                        help='the dataset used for DCORAL, "seed3" or "seed4"')
+    parser.add_argument('--norm_type', type=str, default='ele',
+                        help='the normalization type used for data, "ele", "sample", "global" or "none"')
+    parser.add_argument('--batch_size', type=int, default=256,
+                        help='size for one batch, integer')
+    parser.add_argument('--epoch', type=int, default=200,
+                        help='training epoch, integer')
     parser.add_argument('--lr', type=float, default=0.01, help='learning rate')
     args = parser.parse_args()
     dataset_name = args.dataset
     bn = args.norm_type
-    
+
     # data preparation
     print('Model name: DCORAL. Dataset name: ', dataset_name)
     data, label = utils.load_data(dataset_name)
@@ -225,7 +248,8 @@ if __name__ == '__main__':
         label_tmp = copy.deepcopy(label)
     else:
         pass
-    trial_total, category_number, _ = utils.get_number_of_label_n_trial(dataset_name)
+    trial_total, category_number, _ = utils.get_number_of_label_n_trial(
+        dataset_name)
 
     # training settings
     batch_size = args.batch_size
@@ -242,12 +266,12 @@ if __name__ == '__main__':
     else:
         iteration = 5000
     print('Iteration: {}'.format(iteration))
-    
+
     # store the results
     csub = []
     csesn = []
 
-    ## LOSO
+    # LOSO
     for session_id_main in range(3):
         for subject_id_main in range(15):
             csub.append(cross_subject(data_tmp, label_tmp, session_id_main, subject_id_main, category_number,
@@ -256,10 +280,9 @@ if __name__ == '__main__':
     for subject_id_main in range(15):
         for session_id_main in range(3):
             csesn.append(cross_session(data_tmp, label_tmp, session_id_main, subject_id_main, category_number,
-                                    batch_size, iteration, lr, momentum, log_interval))
-  
+                                       batch_size, iteration, lr, momentum, log_interval))
+
     print("Cross-session: ", csesn)
     print("Cross-subject: ", csub)
     print("Cross-session mean: ", np.mean(csesn), "std: ", np.std(csesn))
     print("Cross-subject mean: ", np.mean(csub), "std: ", np.std(csub))
-    
