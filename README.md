@@ -19,9 +19,12 @@ ExtractedFeatures/
     1/
     2/
     3/
-```
+``` 
 
-## LOSO Experiments (ATTENTION!)
+## LOSO Experiments
+> **Warning**
+> ATTENTION! The results here are different from those in the paper due to variations in the experimental setup.
+
 In our paper, Section III. B. Scenarios mentioned:
 
 > we take the first 2 session data from one subject as the source domains for cross-session transfer, and take the first 14 subjects data from one session as the source domains for cross-subject transfer. The results of cross-session scenarios are averaged over 15 subjects, and the results of cross-subject are averaged over 3 sessions. Standard deviations are also calculated.
