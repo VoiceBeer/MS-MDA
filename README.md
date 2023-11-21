@@ -75,3 +75,6 @@ If you find our work useful for your research, please consider citing our paper 
 
 ## License
 This source code is licensed under the MIT license
+
+## Star History
+[![Star History Chart](https://api.star-history.com/svg?repos=VoiceBeer/MS-MDA&type=Date)](https://star-history.com/#VoiceBeer/MS-MDA)
