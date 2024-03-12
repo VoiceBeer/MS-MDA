@@ -53,10 +53,13 @@ If you find our work useful for your research, please consider citing our paper 
 
 ```bibtex
 @article{chen2021ms,
-  title={MS-MDA: Multisource Marginal Distribution Adaptation for Cross-subject and Cross-session EEG Emotion Recognition},
+  title={MS-MDA: Multisource marginal distribution adaptation for cross-subject and cross-session EEG emotion recognition},
   author={Chen, Hao and Jin, Ming and Li, Zhunan and Fan, Cunhang and Li, Jinpeng and He, Huiguang},
-  journal={arXiv preprint arXiv:2107.07740},
-  year={2021}
+  journal={Frontiers in Neuroscience},
+  volume={15},
+  pages={778488},
+  year={2021},
+  publisher={Frontiers}
 }
 
 @inproceedings{chen2021meernet,
