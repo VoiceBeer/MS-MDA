@@ -1,5 +1,5 @@
 # MS-MDA
-Code of paper MS-MDA: Multisource Marginal Distribution Adaptation for Cross-subject and Cross-session EEG Emotion Recognition
+Code for paper MS-MDA: Multisource Marginal Distribution Adaptation for Cross-subject and Cross-session EEG Emotion Recognition
 
 <div align="center">
   <img width="70%" alt="SimCLR Illustration" src="https://www.frontiersin.org/files/Articles/778488/fnins-15-778488-HTML/image_m/fnins-15-778488-g001.jpg">
